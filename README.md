@@ -23,7 +23,7 @@ We don't have good examples yet, but everything should be well documented.
 
 ### License
 
-Most parts of the documentation provided is coppied from the [Speech-dispatcher documentation](http://htmlpreview.github.io/?https://github.com/brailcom/speechd/blob/master/doc/speech-dispatcher.html), and the [SSIP documentation](https://htmlpreview.github.io/?https://github.com/brailcom/speechd/blob/master/doc/ssip.html).
+Most parts of the documentation provided is coppied from the [Speech-dispatcher documentation](https://htmlpreview.github.io/?https://github.com/brailcom/speechd/blob/master/doc/speech-dispatcher.html), and the [SSIP documentation](https://htmlpreview.github.io/?https://github.com/brailcom/speechd/blob/master/doc/ssip.html).
 Both sources are licensed under the GNU Free Documentation License. Note that all documentation in this code is also licensed under the GNU Free Documentation License. However, the code itself is licensed under the Mozilla Public License Version 2.0. A copy of this license can be found in the file `LICENSE`
 
 A copy of the  GNU Free Documentation License  can be found below.

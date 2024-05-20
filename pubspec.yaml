@@ -1,6 +1,6 @@
 name: dart_speechd
 description: Dart bindings for speech-dispatcher for text to speech on linux.
-version: 0.0.1
+version: 0.0.2
 repository: https://github.com/the-byte-bender/dart_speechd
 ffigen:
   name: "Speechd"
