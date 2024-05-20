@@ -1,7 +1,7 @@
 name: dart_speechd
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: Dart bindings for speech-dispatcher for text to speech on linux.
+version: 0.0.1
+repository: https://github.com/the-byte-bender/dart_speechd
 ffigen:
   name: "Speechd"
   description: "Bindings to speech-dispatcher"
