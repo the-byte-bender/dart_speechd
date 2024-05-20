@@ -1,0 +1,36 @@
+name: dart_speechd
+description: A starting point for Dart libraries or applications.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+ffigen:
+  name: "Speechd"
+  description: "Bindings to speech-dispatcher"
+  output: "lib/src/speechd.dart"
+  preamble: |
+    // ignore_for_file: always_specify_types, unused_element, unused_field
+    // ignore_for_file: camel_case_types
+    // ignore_for_file: non_constant_identifier_names
+  compiler-opts:
+    - "-I./headers/"
+  enums:
+    rename:
+      "_(.*)": "$1"
+  functions:
+    symbol-address:
+      include:
+        - ".*"
+  headers:
+    entry-points:
+      - "headers/libspeechd.h"
+      
+environment:
+  sdk: ^3.3.0
+
+# Add regular dependencies here.
+dependencies:
+  # path: ^1.8.0
+
+dev_dependencies:
+  ffigen: ^12.0.0
+  lints: ^3.0.0
+  test: ^1.24.0
