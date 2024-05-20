@@ -1,13 +1,23 @@
 
 Dart bindings for speech dispatcher, for text to speech on linux.
 
+## Supported features so far.
+
+- Initialize connections to speech-dispatcher with a client ID, connection ID, and username.
+-   speak text, characters, and keys with priorities for each message.
+-   stop the current message or cancel all messages for your connection or for all connections.
+-  set output module, voice, speech rate, pitch, pitch range, and volume.
+- getters to retrieve  the current output module, speech rate, pitch, and volume.
+- Modify aspects of connection. Currently you can change the punctuation mode and data mode (plain text or SSML)
+- And more that might not be included here. See the documentation online or build it locally to see everything.
+
 ## Getting started
 
 This package uses libspeechd. Make sure that it is installed. It is typically installed if speech-dispatcher is installed, but if not, it should be available from your package manager. Note that it is a runtime error if that library could not be found on the system.
 
 ## Usage
 
-Examples demonstrating what you can do are in the examples/ directory.
+We don't have good examples yet, but everything should be well documented.
 
 ## Additional information
 
