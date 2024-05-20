@@ -7588,3 +7588,4 @@ const int SPEECHD_DEFAULT_PORT = 6560;
 const int SPD_WAIT_REPLY = 1;
 
 const int SPD_NO_REPLY = 0;
+final bindings = Speechd(ffi.DynamicLibrary.open("libspeechd.so"));
