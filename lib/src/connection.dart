@@ -5,10 +5,21 @@ import "./punctuation_mode.dart";
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
+/// the main object that is used to control and send messages to Speech Dispatcher
+///
+/// This class is used to create a new connection to Speech Dispatcher.
+///
+/// When you create an instance of this class, a connection to Speech Dispatcher is opened. When the instance is garbage collected, the connection is automatically closed.
+///
+/// See below for a list of methods that can be used to control the connection, send messages to Speech Dispatcher and get information about the current state of the connection etc.
 final class SpeechDispatcherConnection implements Finalizable {
   late final Pointer<SPDConnection> _connection;
   static final _finalizer =
       NativeFinalizer(bindings.addresses.spd_close.cast());
+
+  /// Opens a new connection to Speech Dispatcher
+  ///
+  /// The three parameters [clientName], [connectionName] and [userName] are there only for informational and navigational purposes, they don’t affect any settings or behavior of any functions. The authentication mechanism has nothing to do with [userName]. These parameters are important for the user when they want to set some parameters for a given session etc.
   SpeechDispatcherConnection(
       String clientName, String connectionName, String userName) {
     final clientName2 = clientName.toNativeUtf8().cast<Char>();
