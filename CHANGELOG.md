@@ -1,3 +1,7 @@
+## 0.1.0
+
+- Correct the supported platforms to only `linux`
+
 ## 0.0.3
 
 - Add more documentation for the `SpeechDispatcherConnection` class and its constructor.

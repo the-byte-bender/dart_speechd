@@ -1,7 +1,9 @@
 name: dart_speechd
 description: Dart bindings for speech-dispatcher for text to speech on linux.
-version: 0.0.3
+version: 0.1.0
 repository: https://github.com/the-byte-bender/dart_speechd
+platforms:
+  linux:
 ffigen:
   name: "Speechd"
   description: "Bindings to speech-dispatcher"
@@ -22,11 +24,11 @@ ffigen:
   headers:
     entry-points:
       - "headers/libspeechd.h"
-      
+
 environment:
   sdk: ^3.3.0
 # Add regular dependencies here.dependencies:
-  # path: ^1.8.0
+# path: ^1.8.0
 
 dev_dependencies:
   ffigen: ^12.0.0
