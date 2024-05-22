@@ -9,6 +9,7 @@ Dart bindings for speech dispatcher, for text to speech on linux.
 -  set output module, voice, speech rate, pitch, pitch range, and volume.
 - getters to retrieve  the current output module, speech rate, pitch, and volume.
 - Modify aspects of connection. Currently you can change the punctuation mode and data mode (plain text or SSML)
+- Enable, disable and get notifications/events with async streams.
 - And more that might not be included here. See the documentation online or build it locally to see everything.
 
 ## Getting started
