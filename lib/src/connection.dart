@@ -1,27 +1,46 @@
+import "dart:async";
 import "./speechd.dart";
 import "./message_priority.dart";
 import "./data_mode.dart";
 import "./punctuation_mode.dart";
+import "./speech_dispatcher_notification.dart";
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
 /// the main object that is used to control and send messages to Speech Dispatcher
 ///
-/// This class is used to create a new connection to Speech Dispatcher.
+/// When you create an instance of this class, a connection to Speech Dispatcher is opened. When the instance is garbage collected or disposed, the connection is automatically closed.
 ///
-/// When you create an instance of this class, a connection to Speech Dispatcher is opened. When the instance is garbage collected, the connection is automatically closed.
+/// Please make sure to call [dispose] when you are done with this object. This will close the connection to Speech Dispatcher, close the notification stream and the send port for communication with the speech dispatcher thread.
+/// Native finalizers are in place to automatically free the speech dispatcher resources if you do not call dispose(), but if you do not call [dispose] the send port will stay active and you have to manually unsubscribe from the stream.
+/// So just save yourself all of that and call it.
 ///
 /// See below for a list of methods that can be used to control the connection, send messages to Speech Dispatcher and get information about the current state of the connection etc.
 final class SpeechDispatcherConnection implements Finalizable {
   late final Pointer<SPDConnection> _connection;
   static final _finalizer =
       NativeFinalizer(bindings.addresses.spd_close.cast());
+  // void (*SPDCallback)(size_t msg_id, size_t client_id, SPDNotificationType state);
+  // The native event listener for all notifications except index marks.
+  late final NativeCallable<Void Function(Size, Size, Int32)>
+      _dartNativeEventListener;
+  // void (*SPDCallbackIM)(size_t msg_id, size_t client_id, SPDNotificationType state, char *index_mark);
+  // The native event listener for index mark notifications.
+  late final NativeCallable<Void Function(Size, Size, Int32, Pointer<Char>)>
+      _dartNativeEventListenerIM;
+
+  final _controller =
+      StreamController<SpeechDispatcherNotification>.broadcast();
+
+  /// A stream of notifications from Speech Dispatcher. See [SpeechDispatcherNotification] and [SpeechDispatcherNotificationType] for more information.
+  late final Stream<SpeechDispatcherNotification> notifications;
 
   /// Opens a new connection to Speech Dispatcher
   ///
   /// The three parameters [clientName], [connectionName] and [userName] are there only for informational and navigational purposes, they don’t affect any settings or behavior of any functions. The authentication mechanism has nothing to do with [userName]. These parameters are important for the user when they want to set some parameters for a given session etc.
   SpeechDispatcherConnection(
       String clientName, String connectionName, String userName) {
+    notifications = _controller.stream;
     final clientName2 = clientName.toNativeUtf8().cast<Char>();
     final connectionName2 = connectionName.toNativeUtf8().cast<Char>();
     final userName2 = userName.toNativeUtf8().cast<Char>();
@@ -31,9 +50,40 @@ final class SpeechDispatcherConnection implements Finalizable {
     malloc.free(connectionName2);
     malloc.free(userName2);
     if (_connection == nullptr) {
+      _controller.close();
       throw Exception("Failed to open connection");
     }
+    _dartNativeEventListener = NativeCallable.listener(_processEvent)
+      ..keepIsolateAlive =
+          false; // To protect the user if they don't use dispose()
+    _dartNativeEventListenerIM = NativeCallable.listener(_processEventIM)
+      ..keepIsolateAlive =
+          false; // To protect the user if they don't use dispose()
+
+    _initializeEventListeners();
     _finalizer.attach(this, _connection.cast(), detach: this);
+  }
+
+  void _initializeEventListeners() {
+    final nativeEventListener = _dartNativeEventListener.nativeFunction;
+    final nativeEventListenerIM = _dartNativeEventListenerIM.nativeFunction;
+    _connection.ref
+      ..callback_begin = nativeEventListener
+      ..callback_end = nativeEventListener
+      ..callback_cancel = nativeEventListener
+      ..callback_pause = nativeEventListener
+      ..callback_resume = nativeEventListener
+      ..callback_im = nativeEventListenerIM;
+  }
+
+  void _processEvent(int msgId, int clientId, int state) {
+    _controller.add(
+        SpeechDispatcherNotification(getSPDNotification(state), msgId, null));
+  }
+
+  void _processEventIM(int msgId, int clientId, int state, Pointer<Char> mark) {
+    _controller.add(SpeechDispatcherNotification(
+        getSPDNotification(state), msgId, mark.cast<Utf8>().toDartString()));
   }
 
   /// Sends a message to Speech Dispatcher. If this message isn't blocked by some message of higher priority and [this] connection isn't paused, it will be synthesized directly on one of the output devices. Otherwise, the message will be discarded or delayed according to its priority.
@@ -330,5 +380,40 @@ final class SpeechDispatcherConnection implements Finalizable {
     } finally {
       bindings.free_spd_voices(cVoices);
     }
+  }
+
+  /// Enables recieving one or more  types of [SpeechDispatcherNotification] from the [notifications] stream.
+  ///
+  /// [types] is a list of types of notifications to enable.
+  ///
+  /// Returns true if all notifications were enabled successfully, false otherwise.
+  bool enableNotifications(List<SpeechDispatcherNotificationType> types) {
+    final int value = types.fold(0,
+        (previousValue, element) => previousValue | element.notificationValue);
+    return bindings.spd_set_notification_on(_connection, value) == 0;
+  }
+
+  /// Disables recieving one or more  types of [SpeechDispatcherNotification] from the [notifications] stream.
+  ///
+  /// [types] is a list of types of notifications to disable.
+  ///
+  /// Returns true if all notifications were disabled successfully, false otherwise.
+  bool disableNotifications(List<SpeechDispatcherNotificationType> types) {
+    final int value = types.fold(0,
+        (previousValue, element) => previousValue | element.notificationValue);
+    return bindings.spd_set_notification_off(_connection, value) == 0;
+  }
+
+  /// Frees the resources used by this object. This will close the connection to Speech Dispatcher, close the notification stream and the send port for communication with the speech dispatcher thread.
+  ///
+  /// If you don't call this method, the connection will be closed automatically when the object is garbage collected, but the notification stream will stay active and you have to manually unsubscribe from it.
+  ///
+  /// The instance will be unusable after calling this method. Trying to use it after it is disposed will result in undefined behavior.
+  void dispose() {
+    _finalizer.detach(this);
+    bindings.spd_close(_connection);
+    _dartNativeEventListener.close();
+    _dartNativeEventListenerIM.close();
+    _controller.close();
   }
 }
